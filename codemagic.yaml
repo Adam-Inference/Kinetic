@@ -4,7 +4,7 @@ workflows:
     max_build_duration: 60
     environment:
       flutter: none
-      xcode: latest
+      xcode: none
       android:
         gradle: default
         build_tools: 33.0.2
