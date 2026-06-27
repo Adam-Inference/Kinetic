@@ -11,37 +11,35 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
-import androidx.compose.material3.Icon
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
+import androidx.compose.ui.unit.sp
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutsListScreen(
     state: WorkoutListState,
+    profileName: String = "",
     onWorkoutClick: (String) -> Unit,
     onWatchClick: (String) -> Unit,
+    onBackClick: () -> Unit = {},
+    onSettingsClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -50,17 +48,35 @@ fun WorkoutsListScreen(
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             TopAppBar(
+                navigationIcon = {
+                    TextButton(onClick = onBackClick) {
+                        Text(
+                            text = "← Back",
+                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                },
                 title = {
                     Column {
                         Text(
-                            text = "Workouts",
-                            style = MaterialTheme.typography.headlineMedium,
+                            text = if (profileName.isNotEmpty()) profileName else "Workouts",
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onBackground
                         )
                         Text(
                             text = "Aesthetic routine overview",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.75f)
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                        )
+                    }
+                },
+                actions = {
+                    TextButton(onClick = onSettingsClick) {
+                        Text(
+                            text = "Settings",
+                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 },
@@ -104,16 +120,14 @@ private fun WorkoutListItem(
     onWorkoutClick: () -> Unit,
     onWatchClick: () -> Unit
 ) {
-    val formattedTitle = remember(workout.id, workout.title) {
-        workout.title
-    }
+    val formattedTitle = remember(workout.id, workout.title) { workout.title }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onWorkoutClick),
         shape = MaterialTheme.shapes.medium,
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
             modifier = Modifier
@@ -138,27 +152,24 @@ private fun WorkoutListItem(
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = workout.category,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.68f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.58f)
                     )
                 }
 
                 TextButton(onClick = onWatchClick) {
-                    Icon(
-                        imageVector = Icons.Default.PlayArrow,
-                        contentDescription = "Watch tutorial",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.size(4.dp))
                     Text(
-                        text = "Watch",
+                        text = "▶  Watch",
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 0.3.sp
+                        ),
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
-                // TODO: add fixed YouTube link for this workout: ${workout.videoUrl}
             }
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -170,12 +181,12 @@ private fun WorkoutListItem(
                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
                         shape = MaterialTheme.shapes.small
                     )
-                    .padding(12.dp)
+                    .padding(horizontal = 12.dp, vertical = 10.dp)
             ) {
                 Text(
                     text = "Tap to review details and training cadence.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.78f)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
                 )
             }
         }
@@ -183,7 +194,10 @@ private fun WorkoutListItem(
 }
 
 @Composable
-fun WorkoutsListAestheticDarkNoSetsPreview(onWorkoutClick: (String) -> Unit = {}, onWatchClick: (String) -> Unit = {}) {
+fun WorkoutsListAestheticDarkNoSetsPreview(
+    onWorkoutClick: (String) -> Unit = {},
+    onWatchClick: (String) -> Unit = {}
+) {
     val state = defaultWorkoutListState
     com.example.kinetic.ui.theme.KineticAestheticTheme(variant = com.example.kinetic.ui.theme.AestheticVariant.Dark) {
         WorkoutsListScreen(
@@ -196,7 +210,10 @@ fun WorkoutsListAestheticDarkNoSetsPreview(onWorkoutClick: (String) -> Unit = {}
 }
 
 @Composable
-fun WorkoutsListAestheticLightPreview(onWorkoutClick: (String) -> Unit = {}, onWatchClick: (String) -> Unit = {}) {
+fun WorkoutsListAestheticLightPreview(
+    onWorkoutClick: (String) -> Unit = {},
+    onWatchClick: (String) -> Unit = {}
+) {
     val state = defaultWorkoutListState
     com.example.kinetic.ui.theme.KineticAestheticTheme(variant = com.example.kinetic.ui.theme.AestheticVariant.Light) {
         WorkoutsListScreen(
