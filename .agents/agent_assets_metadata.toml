@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "pKXk_DLUDmd4cKIRkM72f"
+uri = "file://Kinetic-release.zip"
+type = "unspecified"
+title = "Kinetic Release APK (unsigned) — ready to install"
