@@ -18,5 +18,7 @@ data class ProfileSettings(
     val isDarkModeEnabled: Boolean = false,
     val selectedAccent: String = "Pulse",
     val showWorkoutTutorials: Boolean = true,
-    val notificationsEnabled: Boolean = true
+    val notificationsEnabled: Boolean = true,
+    val isHighContrastEnabled: Boolean = false,
+    val isCardLayout: Boolean = true
 )

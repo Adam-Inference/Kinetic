@@ -1,0 +1,463 @@
+# Kinetic Workout Tracker - Complete Fix, Polish & Production Pass
+
+The application has a solid foundation, but roughly 70% of the functionality is either broken, incomplete, or not connected correctly.
+
+I want you to perform a complete production-quality debugging, refactoring, and UI polishing pass.
+
+Do NOT simply patch the listed issues. Audit the entire project and verify every screen, button, state, and feature works correctly before considering the task complete.
+
+────────────────────────────────────────
+GOAL
+────────────────────────────────────────
+
+Transform this into a polished, production-ready Android application with a premium feel while keeping the project lightweight and fully compilable.
+
+Everything should feel intentional, smooth, clean, and responsive.
+
+Do not introduce unnecessary complexity.
+
+────────────────────────────────────────
+ABSOLUTE CONSTRAINTS
+────────────────────────────────────────
+
+These rules are mandatory.
+
+• DO NOT add ANY new Gradle dependencies.
+• DO NOT add ANY external libraries.
+• DO NOT add icon packs.
+• DO NOT add Google Fonts.
+• DO NOT add custom fonts.
+• DO NOT use Coil, Accompanist, Lottie, Material3 Extensions, or any third-party library.
+
+Use ONLY:
+
+- Kotlin
+- Jetpack Compose already included in the project
+- Android SDK
+- Existing Material components already available
+
+The APK must compile successfully without dependency issues.
+
+────────────────────────────────────────
+FUNCTIONAL FIXES
+────────────────────────────────────────
+
+## 1. Exercise Weight Logging
+
+Currently there is no proper way to record the weight used.
+
+Implement:
+
+• Numeric input field
+• Decimal values allowed
+• Validation
+• Save button (or automatic saving)
+• Editing existing value
+• Persistent storage
+
+When reopening the app, every exercise must remember its last recorded weight.
+
+Example:
+
+Bench Press
+80
+
+Close app
+
+Reopen
+
+Bench Press
+80
+
+────────────────────────────────────────
+
+## 2. Weight Unit
+
+Next to every weight input add a dropdown (Spinner / ExposedDropdownMenu).
+
+Options:
+
+• KG
+• LB
+
+Each exercise remembers its own unit.
+
+Examples
+
+Bench Press
+80 KG
+
+Lat Pulldown
+120 LB
+
+Do not make this global.
+
+────────────────────────────────────────
+
+## 3. Watch Button
+
+The Watch button currently does nothing.
+
+Fix it.
+
+Requirements:
+
+• Open saved YouTube URL
+• Use Android Intent
+• Prefer YouTube app
+• Fallback to browser
+• Gracefully handle invalid URLs
+• Show user-friendly feedback if URL is missing
+
+────────────────────────────────────────
+
+## 4. Profile Isolation
+
+This is extremely important.
+
+Every profile must behave like an entirely separate user.
+
+Verify that profiles NEVER share:
+
+• exercises
+• saved weights
+• weight units
+• notes
+• YouTube links
+• settings
+• preferences
+• progress
+
+Switching profiles should instantly load that user's own data.
+
+────────────────────────────────────────
+
+## 5. Accent Themes
+
+Currently these options do absolutely nothing.
+
+Fix them.
+
+Available accents:
+
+• Pulse
+• Ember
+• Third Accent
+
+Changing the accent should immediately update the application's appearance.
+
+Persist the selected accent after restarting the app.
+
+────────────────────────────────────────
+
+## 6. Persistence Audit
+
+Verify ALL user data survives app restarts.
+
+Examples:
+
+✔ Profiles
+
+✔ Exercises
+
+✔ Weight
+
+✔ Weight unit
+
+✔ Notes
+
+✔ Theme
+
+✔ Accent
+
+✔ Settings
+
+Nothing should reset unexpectedly.
+
+────────────────────────────────────────
+DESIGN SYSTEM
+────────────────────────────────────────
+
+Follow this design language while respecting all technical constraints.
+
+Theme name:
+
+"Kinetic"
+
+Visual identity:
+
+Premium
+
+Energetic
+
+Minimal
+
+Modern
+
+High contrast
+
+Fast
+
+────────────────────────────────────────
+
+## Color Language
+
+Primary Accent
+
+Luminous Purple
+
+#bd00ff
+
+Dark Mode
+
+Background
+
+#131314
+
+Cards
+
+Slightly lighter glass surfaces
+
+Borders
+
+Soft glowing purple
+
+Highlights
+
+Luminous purple
+
+Light Theme
+
+Clean white
+
+Soft gray surfaces
+
+Purple highlights
+
+Both themes should feel premium.
+
+────────────────────────────────────────
+
+## Glassmorphism
+
+Since no extra libraries are allowed:
+
+Simulate glass using only Compose.
+
+Use:
+
+• translucent backgrounds
+• subtle borders
+• soft elevation
+• rounded corners
+• alpha values
+• gradients where available without dependencies
+
+Do NOT use blur libraries.
+
+────────────────────────────────────────
+
+## Layout
+
+Improve
+
+Spacing
+
+Padding
+
+Margins
+
+Hierarchy
+
+Alignment
+
+Card sizes
+
+Scrolling
+
+Touch targets
+
+Everything should feel balanced.
+
+────────────────────────────────────────
+
+## Inputs
+
+Improve
+
+Text fields
+
+Dropdown
+
+Buttons
+
+Cards
+
+Settings rows
+
+Exercise cards
+
+Profile cards
+
+without changing functionality.
+
+────────────────────────────────────────
+
+## Animations
+
+Only use standard Compose animations already included.
+
+Examples
+
+AnimatedVisibility
+
+animateFloatAsState
+
+animateColorAsState
+
+Crossfade
+
+Do NOT add animation libraries.
+
+Animations should be subtle.
+
+────────────────────────────────────────
+
+## Navigation
+
+Improve navigation polish.
+
+Selected tabs should be obvious.
+
+Transitions should feel smooth.
+
+Back navigation should behave correctly.
+
+────────────────────────────────────────
+
+FEATURE SET
+────────────────────────────────────────
+
+Workout List
+
+Daily exercise list
+
+Minimal interface
+
+Current Weight
+
+Weight Unit
+
+Watch button
+
+Fast logging
+
+No sets/reps UI.
+
+Maintain this minimalist workflow.
+
+────────────────────────────────────────
+
+Profiles
+
+Easy switching
+
+Independent storage
+
+No shared state
+
+────────────────────────────────────────
+
+Settings
+
+Dark / Light mode
+
+High contrast
+
+Accent selection
+
+Card/List layout selector
+
+Everything functional.
+
+────────────────────────────────────────
+
+CODE QUALITY
+────────────────────────────────────────
+
+While working:
+
+• Remove duplicated code
+
+• Remove dead code
+
+• Improve naming
+
+• Simplify logic
+
+• Improve state management
+
+• Prevent crashes
+
+• Validate inputs
+
+• Avoid memory leaks
+
+• Keep architecture consistent
+
+• Make code readable
+
+• Preserve performance
+
+────────────────────────────────────────
+
+FINAL QA CHECKLIST
+────────────────────────────────────────
+
+Before finishing, verify ALL of the following:
+
+✅ Weight input works.
+
+✅ Decimal values work.
+
+✅ Weight persists.
+
+✅ KG/LB selector works.
+
+✅ Weight unit persists.
+
+✅ Watch button opens YouTube.
+
+✅ Invalid URLs handled gracefully.
+
+✅ Every profile has isolated data.
+
+✅ Profiles never share state.
+
+✅ Accent themes visibly change UI.
+
+✅ Accent persists.
+
+✅ Dark mode works.
+
+✅ Light mode works.
+
+✅ High contrast works.
+
+✅ Card/List view works.
+
+✅ No existing functionality broke.
+
+✅ No new dependencies were added.
+
+✅ No new fonts were added.
+
+✅ No external icon packs were added.
+
+✅ No third-party libraries were added.
+
+✅ Project builds successfully.
+
+✅ APK compiles successfully.
+
+Only consider the task complete after every item above has been verified.

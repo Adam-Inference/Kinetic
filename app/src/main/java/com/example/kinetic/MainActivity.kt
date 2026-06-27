@@ -18,12 +18,12 @@ import androidx.compose.ui.Modifier
 import com.example.kinetic.data.Profile
 import com.example.kinetic.data.ProfileSettings
 import com.example.kinetic.ui.screens.ProfileListScreen
-import com.example.kinetic.ui.screens.SettingsAccent
 import com.example.kinetic.ui.screens.SettingsScreen
 import com.example.kinetic.ui.screens.SettingsState
 import com.example.kinetic.ui.screens.WorkoutsListScreen
 import com.example.kinetic.ui.screens.defaultWorkoutListState
 import com.example.kinetic.ui.theme.AestheticVariant
+import com.example.kinetic.ui.theme.KineticAccent
 import com.example.kinetic.ui.theme.KineticAestheticTheme
 import com.example.kinetic.ui.viewmodel.ProfileViewModel
 
@@ -41,15 +41,28 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val profiles by vm.profiles.collectAsState()
-            val settings by vm.currentSettings.collectAsState()
+            val profiles  by vm.profiles.collectAsState()
+            val settings  by vm.currentSettings.collectAsState()
+            val exercises by vm.currentExercises.collectAsState()
 
             var currentScreen by remember { mutableStateOf<Screen>(Screen.Profiles) }
 
             val themeVariant = if (settings?.isDarkModeEnabled == true)
                 AestheticVariant.Dark else AestheticVariant.Light
 
-            KineticAestheticTheme(variant = themeVariant) {
+            val accent = when (settings?.selectedAccent) {
+                "Ember"  -> KineticAccent.Ember
+                "Cosmic" -> KineticAccent.Cosmic
+                else     -> KineticAccent.Pulse
+            }
+
+            val highContrast = settings?.isHighContrastEnabled == true
+
+            KineticAestheticTheme(
+                variant      = themeVariant,
+                accent       = accent,
+                highContrast = highContrast
+            ) {
                 BackHandler(enabled = currentScreen !is Screen.Profiles) {
                     currentScreen = when (val s = currentScreen) {
                         is Screen.Settings -> Screen.Workouts(s.profile)
@@ -65,34 +78,36 @@ class MainActivity : ComponentActivity() {
 
                         is Screen.Profiles -> {
                             ProfileListScreen(
-                                profiles = profiles,
+                                profiles        = profiles,
                                 onProfileSelect = { profile ->
                                     vm.selectProfile(profile)
                                     currentScreen = Screen.Workouts(profile)
                                 },
-                                onAddProfile = { name -> vm.addProfile(name) },
+                                onAddProfile    = { name -> vm.addProfile(name) },
                                 onRenameProfile = { profile, newName ->
                                     vm.renameProfile(profile, newName)
                                 },
                                 onDeleteProfile = { profile -> vm.deleteProfile(profile) },
-                                modifier = Modifier.padding(innerPadding)
+                                modifier        = Modifier.padding(innerPadding)
                             )
                         }
 
                         is Screen.Workouts -> {
                             WorkoutsListScreen(
-                                state = defaultWorkoutListState,
-                                profileName = screen.profile.name,
-                                onWorkoutClick = {},
-                                onWatchClick = {},
-                                onBackClick = {
+                                state           = defaultWorkoutListState,
+                                exercises       = exercises,
+                                profileId       = screen.profile.id,
+                                profileName     = screen.profile.name,
+                                isCardLayout    = settings?.isCardLayout ?: true,
+                                onExerciseUpdate = { exercise -> vm.saveExercise(exercise) },
+                                onBackClick     = {
                                     vm.clearSelectedProfile()
                                     currentScreen = Screen.Profiles
                                 },
                                 onSettingsClick = {
                                     currentScreen = Screen.Settings(screen.profile)
                                 },
-                                modifier = Modifier.padding(innerPadding)
+                                modifier        = Modifier.padding(innerPadding)
                             )
                         }
 
@@ -102,31 +117,31 @@ class MainActivity : ComponentActivity() {
 
                             SettingsScreen(
                                 state = SettingsState(
-                                    isDarkModeEnabled = profileSettings.isDarkModeEnabled,
-                                    selectedAccent = when (profileSettings.selectedAccent) {
-                                        "Cosmic" -> SettingsAccent.Cosmic
-                                        "Ember" -> SettingsAccent.Ember
-                                        else -> SettingsAccent.Pulse
-                                    },
-                                    showWorkoutTutorials = profileSettings.showWorkoutTutorials,
-                                    notificationsEnabled = profileSettings.notificationsEnabled
+                                    isDarkModeEnabled    = profileSettings.isDarkModeEnabled,
+                                    isHighContrastEnabled = profileSettings.isHighContrastEnabled,
+                                    isCardLayout         = profileSettings.isCardLayout,
+                                    selectedAccent       = when (profileSettings.selectedAccent) {
+                                        "Ember"  -> KineticAccent.Ember
+                                        "Cosmic" -> KineticAccent.Cosmic
+                                        else     -> KineticAccent.Pulse
+                                    }
                                 ),
-                                onDarkModeToggle = { enabled ->
+                                onDarkModeToggle    = { enabled ->
                                     vm.updateSettings(profileSettings.copy(isDarkModeEnabled = enabled))
                                 },
-                                onAccentSelected = { accent ->
-                                    vm.updateSettings(profileSettings.copy(selectedAccent = accent.name))
+                                onHighContrastToggle = { enabled ->
+                                    vm.updateSettings(profileSettings.copy(isHighContrastEnabled = enabled))
                                 },
-                                onShowWorkoutTutorialsToggle = { enabled ->
-                                    vm.updateSettings(profileSettings.copy(showWorkoutTutorials = enabled))
+                                onCardLayoutToggle  = { isCard ->
+                                    vm.updateSettings(profileSettings.copy(isCardLayout = isCard))
                                 },
-                                onNotificationsToggle = { enabled ->
-                                    vm.updateSettings(profileSettings.copy(notificationsEnabled = enabled))
+                                onAccentSelected    = { selectedAccent ->
+                                    vm.updateSettings(profileSettings.copy(selectedAccent = selectedAccent.name))
                                 },
-                                onBackClick = {
+                                onBackClick         = {
                                     currentScreen = Screen.Workouts(screen.profile)
                                 },
-                                modifier = Modifier.padding(innerPadding)
+                                modifier            = Modifier.padding(innerPadding)
                             )
                         }
                     }

@@ -9,6 +9,9 @@ class ProfileRepository(private val dao: ProfileDao) {
     fun getSettings(profileId: Long): Flow<ProfileSettings?> =
         dao.getProfileSettings(profileId)
 
+    fun getExercises(profileId: Long): Flow<List<Exercise>> =
+        dao.getExercisesForProfile(profileId)
+
     suspend fun addProfile(name: String): Long =
         dao.insertProfile(Profile(name = name.trim()))
 
@@ -20,4 +23,7 @@ class ProfileRepository(private val dao: ProfileDao) {
 
     suspend fun saveSettings(settings: ProfileSettings) =
         dao.saveSettings(settings)
+
+    suspend fun saveExercise(exercise: Exercise) =
+        dao.saveExercise(exercise)
 }

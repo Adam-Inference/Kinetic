@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.kinetic.data.AppDatabase
+import com.example.kinetic.data.Exercise
 import com.example.kinetic.data.Profile
 import com.example.kinetic.data.ProfileRepository
 import com.example.kinetic.data.ProfileSettings
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -34,13 +36,19 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
-    fun selectProfile(profile: Profile) {
-        _selectedProfile.value = profile
-    }
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val currentExercises: StateFlow<Map<String, Exercise>> = _selectedProfile
+        .flatMapLatest { profile ->
+            if (profile != null)
+                repo.getExercises(profile.id).map { list -> list.associateBy { it.workoutId } }
+            else
+                flowOf(emptyMap())
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
 
-    fun clearSelectedProfile() {
-        _selectedProfile.value = null
-    }
+    fun selectProfile(profile: Profile) { _selectedProfile.value = profile }
+
+    fun clearSelectedProfile() { _selectedProfile.value = null }
 
     fun addProfile(name: String) {
         if (name.isBlank()) return
@@ -55,13 +63,15 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     fun deleteProfile(profile: Profile) {
         viewModelScope.launch {
             repo.deleteProfile(profile)
-            if (_selectedProfile.value?.id == profile.id) {
-                _selectedProfile.value = null
-            }
+            if (_selectedProfile.value?.id == profile.id) _selectedProfile.value = null
         }
     }
 
     fun updateSettings(settings: ProfileSettings) {
         viewModelScope.launch { repo.saveSettings(settings) }
+    }
+
+    fun saveExercise(exercise: Exercise) {
+        viewModelScope.launch { repo.saveExercise(exercise) }
     }
 }

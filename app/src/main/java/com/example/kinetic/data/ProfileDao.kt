@@ -28,4 +28,10 @@ interface ProfileDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveSettings(settings: ProfileSettings)
+
+    @Query("SELECT * FROM exercises WHERE profileId = :profileId")
+    fun getExercisesForProfile(profileId: Long): Flow<List<Exercise>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun saveExercise(exercise: Exercise)
 }

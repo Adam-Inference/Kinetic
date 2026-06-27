@@ -1,0 +1,104 @@
+The app looks good, but approximately 70% of the functionality is either broken or incomplete. I want you to perform a complete debugging and polishing pass. Do not just patch individual issues—verify that every feature works end-to-end before finishing.
+
+## Functional Issues
+
+### 1. Exercise Weight Saving
+- Currently there is no way to enter the weight I used for an exercise.
+- Add a numeric input field for the "Last Weight" of every exercise.
+- The value must be saved persistently.
+- When I reopen the app, the previously saved weight must still be there.
+- Editing an existing weight should overwrite the previous value.
+
+### 2. Weight Unit
+- Next to the numeric weight input, add a dropdown (ComboBox/Spinner/Exposed Dropdown) that lets me choose:
+  - KG
+  - LB
+- Save both the numeric value and its selected unit.
+- Each exercise should remember its own unit independently.
+
+Example:
+Bench Press → 80 KG
+Lat Pulldown → 110 LB
+
+### 3. Watch Button
+- The "Watch" button currently does nothing.
+- It should open the saved YouTube URL for that exercise.
+- Use an Android Intent to launch the user's default browser or the YouTube app.
+- Validate that invalid or empty URLs are handled gracefully.
+
+### 4. Profile Isolation
+- Verify that every profile has completely separate data.
+- Switching profiles must not mix:
+  - exercises
+  - notes
+  - saved weights
+  - weight units
+  - YouTube links
+  - settings
+- Each profile should behave like an independent user.
+
+### 5. Settings Accent Colors
+The accent color options currently do nothing.
+
+Fix the accent theme system so that selecting an accent immediately updates the UI.
+
+Currently available:
+- Pulse
+- Ember
+- Third Accent
+
+All of them must work correctly.
+
+The selected accent should persist after restarting the app.
+
+## UI Improvements
+
+Improve the overall UI without adding any external libraries.
+
+Requirements:
+- Do NOT introduce any new dependencies.
+- Do NOT use third-party UI libraries.
+- Use only standard Kotlin + Android SDK + Jetpack Compose/Material components already included in the project.
+- The APK must continue compiling without dependency issues.
+
+Improve:
+- color harmony
+- spacing
+- padding
+- typography
+- card elevation
+- button styles
+- input fields
+- dropdown styling
+- navigation polish
+- animations (only if supported without extra libraries)
+
+The UI should feel modern, clean, and polished while remaining lightweight.
+
+## Code Quality
+
+While fixing these issues:
+
+- Remove dead code.
+- Remove duplicated logic.
+- Fix any obvious bugs you discover.
+- Ensure proper state management.
+- Prevent crashes from invalid input.
+- Improve code readability where appropriate.
+- Keep the architecture consistent with the existing project.
+
+## Final Verification
+
+Before considering the task complete, verify that:
+
+✅ Last exercise weight can be entered.
+✅ Weight is saved persistently.
+✅ Weight unit (KG/LB) is saved.
+✅ Watch button opens the correct YouTube link.
+✅ Every profile stores completely independent data.
+✅ Accent themes actually change the application's appearance.
+✅ Theme selection persists after app restart.
+✅ No new dependencies were added.
+✅ The project builds successfully.
+✅ The APK compiles successfully.
+✅ No existing functionality was broken while implementing these fixes.
