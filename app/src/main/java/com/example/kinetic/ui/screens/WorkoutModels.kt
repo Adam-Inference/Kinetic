@@ -16,14 +16,48 @@ data class WorkoutListState(
 )
 
 private fun categoryFor(title: String): String {
+    val t = title.lowercase()
     return when {
-        title.contains("squat", ignoreCase = true) || title.contains("deadlift", ignoreCase = true) || title.contains("leg press", ignoreCase = true) -> "Legs"
-        title.contains("lunge", ignoreCase = true) || title.contains("glute", ignoreCase = true) || title.contains("hamstring", ignoreCase = true) || title.contains("calf", ignoreCase = true) -> "Lower Body"
-        title.contains("press", ignoreCase = true) || title.contains("fly", ignoreCase = true) || title.contains("bench", ignoreCase = true) -> "Chest"
-        title.contains("row", ignoreCase = true) || title.contains("pulldown", ignoreCase = true) || title.contains("pull up", ignoreCase = true) -> "Back"
-        title.contains("curl", ignoreCase = true) || title.contains("tricep", ignoreCase = true) || title.contains("wrist", ignoreCase = true) || title.contains("shrug", ignoreCase = true) -> "Arms"
-        title.contains("cable", ignoreCase = true) || title.contains("machine", ignoreCase = true) || title.contains("extension", ignoreCase = true) -> "Accessories"
-        title.contains("ab", ignoreCase = true) || title.contains("twist", ignoreCase = true) || title.contains("extension", ignoreCase = true) -> "Core"
+        // Shoulders — check before generic "press" or "row"
+        t.contains("lateral raise") || t.contains("rear delt") ||
+        t.contains("shoulder press") || t.contains("front raise") ||
+        t.contains("upright row") ||
+        (t.contains("reverse") && (t.contains("fly") || t.contains("fl"))) -> "Shoulders"
+
+        // Arms — explicit curl/tricep/wrist before "press" or "extension" bleed
+        t.contains("tricep") || t.contains("skull") || t.contains("pushdown") ||
+        t.contains("preacher") || t.contains("wrist") || t.contains("shrug") ||
+        t.contains("triceps dip") ||
+        (t.contains("curl") && !t.contains("leg curl")) -> "Arms"
+
+        // Legs — true compound squat movements
+        (t.contains("squat") && !t.contains("split")) ||
+        (t.contains("leg press") && !t.contains("calf")) ||
+        t.contains("leg extension") -> "Legs"
+
+        // Lower Body — posterior chain, hips, single-leg, calf
+        t.contains("deadlift") || t.contains("lunge") || t.contains("split squat") ||
+        t.contains("glute") || t.contains("hamstring") || t.contains("calf") ||
+        t.contains("kickback") || t.contains("leg curl") ||
+        t.contains("abductor") || t.contains("adductor") -> "Lower Body"
+
+        // Back
+        t.contains("row") || t.contains("pulldown") || t.contains("pull up") ||
+        t.contains("pull-up") || t.contains("back extension") ||
+        t.contains("straight arm") -> "Back"
+
+        // Chest — press / fly / crossover
+        t.contains("chest") || t.contains("bench") || t.contains("floor press") ||
+        t.contains("crossover") || t.contains("fly") ||
+        (t.contains("dumbbell press") && !t.contains("shoulder")) ||
+        (t.contains("incline") && t.contains("press") && !t.contains("curl")) ||
+        t.contains("flat dumbbell") || t.contains("cable press") ||
+        t.contains("dips") -> "Chest"
+
+        // Core
+        t.contains("crunch") || t.contains("twist") ||
+        t.contains("cable ab") || t.startsWith("ab ") || t.contains(" ab ") -> "Core"
+
         else -> "Full Body"
     }
 }
@@ -241,4 +275,8 @@ val defaultWorkoutListState = WorkoutListState(
             videoUrl = workoutVideoUrls.getOrNull(index) ?: ""
         )
     }
+)
+
+val FILTER_ORDER = listOf(
+    "All", "Chest", "Back", "Shoulders", "Arms", "Legs", "Lower Body", "Core", "Full Body"
 )

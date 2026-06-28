@@ -1,5 +1,8 @@
 package com.example.kinetic.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,7 +27,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -54,13 +57,9 @@ fun ProfileListScreen(
     profiles: List<Profile>,
     onProfileSelect: (Profile) -> Unit,
     onAddProfile: (String) -> Unit,
-    onRenameProfile: (Profile, String) -> Unit,
-    onDeleteProfile: (Profile) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
-    var profileToRename by remember { mutableStateOf<Profile?>(null) }
-    var profileToDelete by remember { mutableStateOf<Profile?>(null) }
 
     Surface(
         modifier = modifier.fillMaxSize(),
@@ -74,7 +73,7 @@ fun ProfileListScreen(
                     .background(
                         Brush.verticalGradient(
                             colors = listOf(
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
                                 MaterialTheme.colorScheme.background
                             )
                         )
@@ -92,15 +91,16 @@ fun ProfileListScreen(
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        text = "Select a profile to begin your session",
+                        text = if (profiles.isEmpty()) "Create your first profile to get started"
+                        else "Select a profile to begin",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                     )
                 }
             }
 
-            Divider(
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.07f),
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
 
@@ -115,13 +115,13 @@ fun ProfileListScreen(
                         Text(
                             text = "No profiles yet",
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.45f)
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Tap  + Add Profile  to get started",
+                            text = "Tap  + Add Profile  below to create one",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.32f)
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.28f)
                         )
                     }
                 }
@@ -134,11 +134,9 @@ fun ProfileListScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     items(profiles, key = { it.id }) { profile ->
-                        ProfileCard(
+                        ProfileSelectCard(
                             profile = profile,
-                            onSelect = { onProfileSelect(profile) },
-                            onRename = { profileToRename = profile },
-                            onDelete = { profileToDelete = profile }
+                            onSelect = { onProfileSelect(profile) }
                         )
                     }
                 }
@@ -147,7 +145,7 @@ fun ProfileListScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .padding(horizontal = 16.dp, vertical = 14.dp)
             ) {
                 Button(
                     onClick = { showAddDialog = true },
@@ -181,75 +179,20 @@ fun ProfileListScreen(
             onDismiss = { showAddDialog = false }
         )
     }
-
-    profileToRename?.let { profile ->
-        ProfileNameDialog(
-            title = "Rename Profile",
-            initialValue = profile.name,
-            placeholder = "Enter new name",
-            confirmLabel = "Save",
-            onConfirm = { newName ->
-                onRenameProfile(profile, newName)
-                profileToRename = null
-            },
-            onDismiss = { profileToRename = null }
-        )
-    }
-
-    profileToDelete?.let { profile ->
-        AlertDialog(
-            onDismissRequest = { profileToDelete = null },
-            title = {
-                Text(
-                    text = "Delete Profile?",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                )
-            },
-            text = {
-                Text(
-                    text = "\"${profile.name}\" and all its settings will be permanently removed.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    onDeleteProfile(profile)
-                    profileToDelete = null
-                }) {
-                    Text(
-                        text = "Delete",
-                        color = MaterialTheme.colorScheme.error,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { profileToDelete = null }) {
-                    Text("Cancel")
-                }
-            }
-        )
-    }
 }
 
 @Composable
-private fun ProfileCard(
+private fun ProfileSelectCard(
     profile: Profile,
-    onSelect: () -> Unit,
-    onRename: () -> Unit,
-    onDelete: () -> Unit
+    onSelect: () -> Unit
 ) {
     val initials = remember(profile.name) {
-        profile.name
-            .trim()
-            .split(" ")
+        profile.name.trim().split(" ")
             .filter { it.isNotEmpty() }
             .take(2)
             .joinToString("") { it.first().uppercaseChar().toString() }
             .ifEmpty { "?" }
     }
-
     val dateStr = remember(profile.createdAt) {
         SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(Date(profile.createdAt))
     }
@@ -258,8 +201,8 @@ private fun ProfileCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onSelect),
-        shape = MaterialTheme.shapes.medium,
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+        shape = MaterialTheme.shapes.large,
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Row(
@@ -270,7 +213,7 @@ private fun ProfileCard(
         ) {
             Box(
                 modifier = Modifier
-                    .size(50.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)),
                 contentAlignment = Alignment.Center
@@ -279,7 +222,7 @@ private fun ProfileCard(
                     text = initials,
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
+                        fontSize = 17.sp
                     ),
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -297,30 +240,21 @@ private fun ProfileCard(
                 Text(
                     text = "Created $dateStr",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
                 )
             }
 
-            TextButton(onClick = onRename) {
-                Text(
-                    text = "Edit",
-                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-            TextButton(onClick = onDelete) {
-                Text(
-                    text = "✕",
-                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
+            Text(
+                text = "›",
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+            )
         }
     }
 }
 
 @Composable
-private fun ProfileNameDialog(
+fun ProfileNameDialog(
     title: String,
     initialValue: String = "",
     placeholder: String,
@@ -359,14 +293,10 @@ private fun ProfileNameDialog(
             Button(
                 onClick = { if (isValid) onConfirm(text.trim()) },
                 enabled = isValid
-            ) {
-                Text(confirmLabel)
-            }
+            ) { Text(confirmLabel) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
+            TextButton(onClick = onDismiss) { Text("Cancel") }
         }
     )
 }

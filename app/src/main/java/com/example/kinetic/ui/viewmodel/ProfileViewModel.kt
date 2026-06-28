@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -23,7 +24,11 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
     private val repo = ProfileRepository(AppDatabase.getInstance(application).profileDao())
 
+    private val _isInitialized = MutableStateFlow(false)
+    val isInitialized: StateFlow<Boolean> = _isInitialized.asStateFlow()
+
     val profiles: StateFlow<List<Profile>> = repo.allProfiles
+        .onEach { if (!_isInitialized.value) _isInitialized.value = true }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     private val _selectedProfile = MutableStateFlow<Profile?>(null)

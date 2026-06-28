@@ -11,6 +11,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,7 +20,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
@@ -28,6 +31,8 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -39,9 +44,11 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -95,10 +102,25 @@ fun WorkoutsListScreen(
     profileName: String = "",
     isCardLayout: Boolean = true,
     onExerciseUpdate: (Exercise) -> Unit = {},
-    onBackClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    var selectedFilter by rememberSaveable { mutableStateOf("All") }
+
+    val filterOptions = remember(state.workouts) {
+        val present = state.workouts.map { it.category }.toSet()
+        FILTER_ORDER.filter { it == "All" || it in present }
+    }
+
+    val filteredWorkouts by remember(selectedFilter) {
+        derivedStateOf {
+            if (selectedFilter == "All") state.workouts
+            else state.workouts.filter { it.category == selectedFilter }
+        }
+    }
+
+    val listState = rememberLazyListState()
+
     Surface(
         modifier = modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -106,15 +128,6 @@ fun WorkoutsListScreen(
         Column(modifier = Modifier.fillMaxSize()) {
 
             TopAppBar(
-                navigationIcon = {
-                    TextButton(onClick = onBackClick) {
-                        Text(
-                            text = "← Back",
-                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                },
                 title = {
                     Column {
                         Text(
@@ -123,9 +136,9 @@ fun WorkoutsListScreen(
                             color = MaterialTheme.colorScheme.onBackground
                         )
                         Text(
-                            text = "${state.workouts.size} exercises",
+                            text = "${filteredWorkouts.size} of ${state.workouts.size} exercises",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.48f)
                         )
                     }
                 },
@@ -143,29 +156,96 @@ fun WorkoutsListScreen(
                 )
             )
 
-            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.07f))
 
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background),
-                verticalArrangement = if (isCardLayout) Arrangement.spacedBy(10.dp) else Arrangement.Top,
-                contentPadding = if (isCardLayout)
-                    androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp, vertical = 14.dp)
-                else
-                    androidx.compose.foundation.layout.PaddingValues(0.dp)
+            // ── Filter chips ───────────────────────────────────────────────
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(
-                    items = state.workouts,
-                    key = { it.id }
-                ) { workout ->
-                    WorkoutRow(
-                        workout = workout,
-                        exercise = exercises[workout.id],
-                        profileId = profileId,
-                        isCardLayout = isCardLayout,
-                        onExerciseUpdate = onExerciseUpdate
+                items(filterOptions, key = { it }) { filter ->
+                    val selected = filter == selectedFilter
+                    val chipBg by animateColorAsState(
+                        targetValue = if (selected) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.surfaceVariant,
+                        animationSpec = tween(200),
+                        label = "chipBg"
                     )
+                    val chipText by animateColorAsState(
+                        targetValue = if (selected) Color.White
+                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        animationSpec = tween(200),
+                        label = "chipText"
+                    )
+                    FilterChip(
+                        selected = selected,
+                        onClick = { selectedFilter = filter },
+                        label = {
+                            Text(
+                                text = filter,
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+                                ),
+                                color = chipText
+                            )
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primary,
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        ),
+                        border = if (selected) null else FilterChipDefaults.filterChipBorder(
+                            borderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.14f),
+                            enabled = true,
+                            selected = false
+                        )
+                    )
+                }
+            }
+
+            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
+
+            if (filteredWorkouts.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "No exercises in $selectedFilter",
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium),
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.45f)
+                        )
+                        Spacer(Modifier.height(6.dp))
+                        TextButton(onClick = { selectedFilter = "All" }) {
+                            Text("Show all", color = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                }
+            } else {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.background),
+                    verticalArrangement = if (isCardLayout) Arrangement.spacedBy(10.dp)
+                    else Arrangement.Top,
+                    contentPadding = if (isCardLayout)
+                        PaddingValues(horizontal = 15.dp, vertical = 14.dp)
+                    else
+                        PaddingValues(0.dp)
+                ) {
+                    items(
+                        items = filteredWorkouts,
+                        key = { it.id }
+                    ) { workout ->
+                        WorkoutRow(
+                            workout = workout,
+                            exercise = exercises[workout.id],
+                            profileId = profileId,
+                            isCardLayout = isCardLayout,
+                            onExerciseUpdate = onExerciseUpdate
+                        )
+                    }
                 }
             }
         }
@@ -201,19 +281,16 @@ private fun WorkoutRow(
     LaunchedEffect(weightText, selectedUnit) {
         if (!initialized) return@LaunchedEffect
         delay(700L)
-        val parsed = weightText.toDoubleOrNull() ?: 0.0
         onExerciseUpdate(
             Exercise(
                 id = "${profileId}_${workout.id}",
                 profileId = profileId,
                 workoutId = workout.id,
-                weight = parsed,
+                weight = weightText.toDoubleOrNull() ?: 0.0,
                 weightUnit = selectedUnit
             )
         )
     }
-
-    val accentColor = MaterialTheme.colorScheme.primary
 
     if (isCardLayout) {
         Card(
@@ -221,14 +298,12 @@ private fun WorkoutRow(
                 .fillMaxWidth()
                 .border(
                     width = 1.dp,
-                    color = accentColor.copy(alpha = 0.18f),
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.22f),
                     shape = MaterialTheme.shapes.large
                 ),
             shape = MaterialTheme.shapes.large,
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             WorkoutContent(
                 workout = workout,
@@ -240,7 +315,7 @@ private fun WorkoutRow(
                 onUnitExpandedChange = { unitExpanded = it },
                 onWatchClick = { launchYouTube(context, workout.videoUrl) },
                 onWeightDone = { focusManager.clearFocus() },
-                modifier = Modifier.padding(14.dp)
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp)
             )
         }
     } else {
@@ -259,7 +334,7 @@ private fun WorkoutRow(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 12.dp)
             )
-            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.07f))
+            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f))
         }
     }
 }
@@ -281,36 +356,38 @@ private fun WorkoutContent(
     val primary = MaterialTheme.colorScheme.primary
 
     Column(modifier = modifier) {
+        // ── Header row: title + Watch ────────────────────────────────────
         Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.Top,
-            horizontalArrangement = Arrangement.SpaceBetween
+            verticalAlignment = Alignment.Top
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = workout.title,
-                    style = MaterialTheme.typography.titleSmall.copy(
+                    style = MaterialTheme.typography.bodyLarge.copy(
                         fontWeight = FontWeight.Bold,
-                        lineHeight = 20.sp
+                        lineHeight = 22.sp
                     ),
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(Modifier.height(6.dp))
                 Box(
                     modifier = Modifier
                         .clip(MaterialTheme.shapes.extraSmall)
-                        .background(primary.copy(alpha = 0.12f))
-                        .padding(horizontal = 7.dp, vertical = 2.dp)
+                        .background(primary.copy(alpha = 0.13f))
+                        .padding(horizontal = 8.dp, vertical = 3.dp)
                 ) {
                     Text(
                         text = workout.category,
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 0.3.sp
+                        ),
                         color = primary,
                         fontSize = 10.sp
                     )
                 }
             }
-
             TextButton(
                 onClick = onWatchClick,
                 modifier = Modifier.padding(start = 4.dp)
@@ -318,16 +395,18 @@ private fun WorkoutContent(
                 Text(
                     text = "▶  Watch",
                     style = MaterialTheme.typography.labelMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 0.2.sp
+                        fontWeight = FontWeight.ExtraBold,
+                        letterSpacing = 0.4.sp
                     ),
-                    color = primary
+                    color = primary,
+                    fontSize = 13.sp
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(Modifier.height(12.dp))
 
+        // ── Weight + Unit row ────────────────────────────────────────────
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -337,14 +416,15 @@ private fun WorkoutContent(
                 value = weightText,
                 onValueChange = { input ->
                     val filtered = input.filter { it.isDigit() || it == '.' }
-                    val dotCount = filtered.count { it == '.' }
-                    if (dotCount <= 1 && filtered.length <= 8) onWeightChange(filtered)
+                    if (filtered.count { it == '.' } <= 1 && filtered.length <= 8) {
+                        onWeightChange(filtered)
+                    }
                 },
                 placeholder = {
                     Text(
                         "Weight",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.32f)
                     )
                 },
                 singleLine = true,
@@ -354,16 +434,16 @@ private fun WorkoutContent(
                 ),
                 keyboardActions = KeyboardActions(onDone = { onWeightDone() }),
                 modifier = Modifier.weight(1f),
-                textStyle = MaterialTheme.typography.bodyMedium.copy(
-                    fontWeight = FontWeight.SemiBold,
+                textStyle = MaterialTheme.typography.bodyLarge.copy(
+                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 ),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f),
-                    focusedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.04f),
+                    focusedBorderColor = primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.16f),
+                    focusedContainerColor = primary.copy(alpha = 0.05f),
                     unfocusedContainerColor = Color.Transparent,
-                    cursorColor = MaterialTheme.colorScheme.primary
+                    cursorColor = primary
                 ),
                 shape = MaterialTheme.shapes.small
             )
@@ -371,7 +451,7 @@ private fun WorkoutContent(
             ExposedDropdownMenuBox(
                 expanded = unitExpanded,
                 onExpandedChange = onUnitExpandedChange,
-                modifier = Modifier.width(96.dp)
+                modifier = Modifier.width(100.dp)
             ) {
                 OutlinedTextField(
                     value = selectedUnit,
@@ -382,16 +462,16 @@ private fun WorkoutContent(
                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = unitExpanded)
                     },
                     modifier = Modifier.menuAnchor(),
-                    textStyle = MaterialTheme.typography.bodyMedium.copy(
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     ),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f),
-                        focusedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.04f),
+                        focusedBorderColor = primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.16f),
+                        focusedContainerColor = primary.copy(alpha = 0.05f),
                         unfocusedContainerColor = Color.Transparent,
-                        cursorColor = MaterialTheme.colorScheme.primary
+                        cursorColor = primary
                     ),
                     shape = MaterialTheme.shapes.small
                 )
@@ -404,11 +484,10 @@ private fun WorkoutContent(
                             text = {
                                 Text(
                                     text = unit,
-                                    fontWeight = if (unit == selectedUnit) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (unit == selectedUnit)
-                                        MaterialTheme.colorScheme.primary
-                                    else
-                                        MaterialTheme.colorScheme.onSurface
+                                    fontWeight = if (unit == selectedUnit) FontWeight.Bold
+                                    else FontWeight.Normal,
+                                    color = if (unit == selectedUnit) primary
+                                    else MaterialTheme.colorScheme.onSurface
                                 )
                             },
                             onClick = {

@@ -1,0 +1,298 @@
+# Kinetic Workout Tracker – Feature Expansion & UX Improvements
+
+The application is in a good state now, but I want to significantly improve the user experience, workflow, and overall polish while keeping the app lightweight and production-ready.
+
+Implement the following features and improvements. Do not only implement them—make sure they integrate naturally with the existing architecture and UI.
+
+---
+
+# IMPORTANT CONSTRAINTS
+
+These are mandatory:
+
+- DO NOT add any Gradle dependencies.
+- DO NOT add any external libraries.
+- DO NOT add icon packs.
+- DO NOT add custom fonts or Google Fonts.
+- DO NOT replace the existing architecture.
+- Continue using only Kotlin, Jetpack Compose, Android SDK, and the dependencies already present in the project.
+- The APK must continue compiling successfully without dependency issues.
+
+---
+
+# 1. Workout Filtering
+
+The workouts screen currently displays all exercises in one long list.
+
+Add a filtering system.
+
+## Requirements
+
+At the top of the workouts screen, keep the existing dropdown (or replace it with a better one if needed).
+
+The user should be able to filter exercises by muscle group.
+
+Example categories:
+
+- All Workouts
+- Chest
+- Back
+- Shoulders
+- Arms
+- Legs
+- Core
+- Cardio
+
+When a category is selected:
+
+- Only workouts belonging to that category should be displayed.
+- Switching filters should feel instant and smooth.
+- The selected filter should be visually obvious.
+- Default selection should be **All Workouts**.
+
+---
+
+# 2. Workout List UI Redesign
+
+The workouts list still feels plain.
+
+Redesign it while keeping the existing design language.
+
+Improve:
+
+- spacing
+- padding
+- hierarchy
+- typography
+- card appearance
+- borders
+- shadows/elevation
+- rounded corners
+
+Each workout should feel like an individual component rather than text stacked together.
+
+Every workout card should have:
+
+- a clear border
+- better spacing from the next workout
+- consistent padding
+- improved visual grouping
+- polished alignment
+
+Increase the attractiveness of the accent colors.
+
+The purple accent should feel more vibrant and premium without becoming overwhelming.
+
+Overall, the workouts screen should immediately feel more modern and visually engaging.
+
+---
+
+# 3. Export Workout History (CSV)
+
+Add an **Export Workouts** button inside the Settings screen.
+
+When pressed:
+
+Generate a CSV file containing every saved workout for the current profile.
+
+CSV columns:
+
+WorkoutName,Weight,Unit,DateSaved
+
+Example:
+
+Bench Press,80,KG,2026-06-28
+Lat Pulldown,120,LB,2026-06-27
+
+Requirements:
+
+- Export only the active profile's data.
+- Include all saved exercises.
+- Save using standard CSV formatting.
+- Handle storage permissions correctly (if required by the Android version).
+- Show a success or error message after exporting.
+- Use a meaningful filename, for example:
+
+WorkoutHistory_Brother1_2026-06-28.csv
+
+---
+
+# 4. Improved Profile Management
+
+The profile selection flow should be smarter.
+
+## Automatic Startup
+
+If there is only **one profile** stored:
+
+- Skip the profile selection screen.
+- Launch directly into the Workouts screen.
+
+If there are multiple profiles:
+
+- Show the profile selection screen as usual.
+
+---
+
+## Profile Management
+
+Move profile management into the Settings screen.
+
+Allow users to:
+
+- Create a profile
+- Delete a profile
+- Rename a profile (optional but recommended)
+- Switch profiles
+
+Deleting a profile should require confirmation.
+
+Never allow deleting the last remaining profile unless a new one is created immediately.
+
+---
+
+# 5. Better App Flow
+
+The current navigation makes the app feel like it is already on an "exit" screen because the Profiles page is treated as the main page.
+
+Instead:
+
+Application Launch
+
+Splash Screen
+
+↓
+
+(if one profile)
+Workouts Screen
+
+↓
+
+(if multiple profiles)
+Profile Selection
+
+↓
+
+Workouts Screen
+
+The Workouts screen should become the application's real home screen.
+
+Also:
+
+Remove the unnecessary Back button shown in the top-left corner of the Workouts screen.
+
+The user should not be able to accidentally navigate back to the splash or profile screen during normal use.
+
+Navigation should feel natural and intentional.
+
+---
+
+# 6. Smooth Scrolling & Performance Polish
+
+The app already performs well, but scrolling still feels slightly stiff.
+
+Improve scrolling throughout the application.
+
+Focus on:
+
+- smoother LazyColumn scrolling
+- stable item rendering
+- reduced recompositions
+- proper state remembering
+- efficient list updates
+- fluid scrolling even with many workouts
+
+If beneficial, use Compose features already available in the project, such as:
+
+- remember
+- rememberSaveable
+- derivedStateOf
+- LazyListState
+- animateItemPlacement
+- animateContentSize
+- AnimatedVisibility
+
+Do NOT introduce any animation libraries.
+
+Animations should remain subtle and fast.
+
+---
+
+# Overall UX Polish
+
+While implementing these features, improve the application's overall feel.
+
+Examples:
+
+- Better empty states
+- More polished dialogs
+- Better spacing
+- Consistent margins
+- Better visual feedback when pressing buttons
+- Better loading transitions
+- More polished dropdown menus
+- More consistent corner radii
+- Better color balance
+- Better touch targets
+
+Everything should feel like a professionally designed fitness application.
+
+---
+
+# Code Quality
+
+While implementing these features:
+
+- Remove duplicated code where appropriate.
+- Improve naming consistency.
+- Keep the architecture clean.
+- Prevent unnecessary recompositions.
+- Preserve backward compatibility with existing data.
+- Do not break existing features.
+- Keep the project easy to maintain.
+
+---
+
+# Final Verification Checklist
+
+Before considering the task complete, verify all of the following:
+
+✅ Workout filtering works correctly for every category.
+
+✅ Default filter is "All Workouts."
+
+✅ Workout cards have improved spacing, borders, and visual hierarchy.
+
+✅ Accent colors are more vibrant and consistent.
+
+✅ CSV export works correctly.
+
+✅ CSV contains:
+- Workout Name
+- Weight
+- Unit
+- Date Saved
+
+✅ Export only includes the active profile's data.
+
+✅ Automatic startup skips profile selection when only one profile exists.
+
+✅ Profile management (create, rename, delete, switch) works correctly from Settings.
+
+✅ Workouts screen is now the application's primary screen.
+
+✅ The unnecessary Back button has been removed.
+
+✅ Scrolling feels noticeably smoother.
+
+✅ No new dependencies were added.
+
+✅ No new fonts were added.
+
+✅ No external icon packs were added.
+
+✅ No existing functionality was broken.
+
+✅ The project builds successfully.
+
+✅ The APK compiles successfully.
