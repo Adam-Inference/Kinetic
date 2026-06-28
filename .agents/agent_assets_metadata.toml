@@ -12,3 +12,9 @@ id = "-K9MvEatIGYx2s4nYD0Ec"
 uri = "file://Kinetic-signed.zip"
 type = "unspecified"
 title = "Kinetic APK — Signed & Ready to Install"
+
+[[outputs]]
+id = "Ory4fQyKzeSFTQbTWC3M8"
+uri = "file://Kinetic-v2.zip"
+type = "unspecified"
+title = "Kinetic v2 — Signed APK (Production Pass)"
